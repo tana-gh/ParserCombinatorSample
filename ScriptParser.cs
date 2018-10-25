@@ -8,18 +8,18 @@ namespace ParserCombinatorSample
     public static class ScriptParser
     {
         public static Parser<IScriptNode> Parser => src =>
-            _InnerParser.End()(src);
+            _SpaceParser.Right(_TagParser).Left(_SpaceParser).End()(src);
 
         private static Parser<IScriptNode> _TagParser => src =>
             _StartTagParser.Sequence(_InnerParser, (f, s) => (IScriptNode)new TagNode(f.tagName, f.attributes, (InnerNode)s))
-                          .ValidateSequence(_EndTagParser, (f, s) => f, (f, s) => ((TagNode)f).TagName == s)
-                          (src);
+                           .ValidateSequence(_EndTagParser, (f, s) => f, (f, s) => ((TagNode)f).TagName == s)
+                           (src);
 
         private static Parser<IScriptNode> _InnerParser => src =>
             _TagParser.Or(_TextParser)
-                     .Many()
-                     .Map(x => (IScriptNode)new InnerNode(x))
-                     (src);
+                      .Many()
+                      .Map(x => (IScriptNode)new InnerNode(x))
+                      (src);
 
         private static Parser<(string tagName, Dictionary<string, string> attributes)> _StartTagParser => src =>
             Just('<').None(_SpaceParser)

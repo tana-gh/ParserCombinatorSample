@@ -40,10 +40,20 @@ namespace ParserCombinatorSample
 
         public (int line, int letter) GetLinePos()
         {
+            return _GetLinePos(_Pos);
+        }
+
+        public (int line, int letter) GetEndLinePos()
+        {
+            return _GetLinePos(_Src.Length);
+        }
+
+        private (int line, int letter) _GetLinePos(int pos)
+        {
             int line   = 0;
             int letter = 0;
 
-            foreach (var c in _Src.Take(_Pos))
+            foreach (var c in _Src.Take(pos))
             {
                 if (c == '\n')
                 {

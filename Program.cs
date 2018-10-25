@@ -29,7 +29,7 @@ namespace ParserCombinatorSample
             }
             else
             {
-                var linePos = result.Src.GetLinePos();
+                var linePos = result.LinePos;
                 Console.WriteLine($"Failed on ({linePos.line}, {linePos.letter}): {result.Reason}");
             }
         }

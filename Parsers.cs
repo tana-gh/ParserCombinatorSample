@@ -16,7 +16,7 @@ namespace ParserCombinatorSample
             }
             catch (EndOfSrcException ex)
             {
-                return ParserResult<char>.Fail(default(ParsedSrc), ex.Message);
+                return ParserResult<char>.Fail(src, ex.Message, src.GetEndLinePos());
             }
         };
 
@@ -26,11 +26,11 @@ namespace ParserCombinatorSample
             {
                 var (c, next) = src.Read();
                 return char.IsLetterOrDigit(c) ? ParserResult<char>.Success(next, c) :
-                                                 ParserResult<char>.Fail(src, $"{c} is not letter.");
+                                                 ParserResult<char>.Fail(src, $"{c} is not letter.", next.GetLinePos());
             }
             catch (EndOfSrcException ex)
             {
-                return ParserResult<char>.Fail(default(ParsedSrc), ex.Message);
+                return ParserResult<char>.Fail(src, ex.Message, src.GetEndLinePos());
             }
         };
 
@@ -39,12 +39,12 @@ namespace ParserCombinatorSample
             try
             {
                 var (c, next) = src.Read();
-                return char.IsSeparator(c) ? ParserResult<char>.Success(next, c) :
-                                             ParserResult<char>.Fail(src, $"{c} is not space.");
+                return char.IsWhiteSpace(c) ? ParserResult<char>.Success(next, c) :
+                                              ParserResult<char>.Fail(src, $"{c} is not space.", next.GetLinePos());
             }
             catch (EndOfSrcException ex)
             {
-                return ParserResult<char>.Fail(default(ParsedSrc), ex.Message);
+                return ParserResult<char>.Fail(src, ex.Message, src.GetEndLinePos());
             }
         };
 
@@ -54,11 +54,11 @@ namespace ParserCombinatorSample
             {
                 var (c, next) = src.Read();
                 return c == literal ? ParserResult<char>.Success(next, c) :
-                                      ParserResult<char>.Fail(src, $"{c} does not equal {literal}.");
+                                      ParserResult<char>.Fail(src, $"{c} does not equal {literal}.", next.GetLinePos());
             }
             catch (EndOfSrcException ex)
             {
-                return ParserResult<char>.Fail(default(ParsedSrc), ex.Message);
+                return ParserResult<char>.Fail(src, ex.Message, src.GetEndLinePos());
             }
         };
 
@@ -68,11 +68,11 @@ namespace ParserCombinatorSample
             {
                 var (c, next) = src.Read();
                 return !literals.Contains(c) ? ParserResult<char>.Success(next, c) :
-                                               ParserResult<char>.Fail(src, $"{c} equals {string.Join(", ", literals)}.");
+                                               ParserResult<char>.Fail(src, $"{c} equals {string.Join(", ", literals)}.", next.GetLinePos());
             }
             catch (EndOfSrcException ex)
             {
-                return ParserResult<char>.Fail(default(ParsedSrc), ex.Message);
+                return ParserResult<char>.Fail(src, ex.Message, src.GetEndLinePos());
             }
         };
 
@@ -82,11 +82,11 @@ namespace ParserCombinatorSample
             {
                 var (c, next) = src.Read();
                 return predicate(c) ? ParserResult<char>.Success(next, c) :
-                                      ParserResult<char>.Fail(src, $"predicate({c}) failed.");
+                                      ParserResult<char>.Fail(src, $"predicate({c}) failed.", next.GetLinePos());
             }
             catch (EndOfSrcException ex)
             {
-                return ParserResult<char>.Fail(default(ParsedSrc), ex.Message);
+                return ParserResult<char>.Fail(src, ex.Message, src.GetEndLinePos());
             }
         };
     }

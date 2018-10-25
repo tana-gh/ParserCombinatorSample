@@ -12,8 +12,8 @@ namespace ParserCombinatorSample
 
             return result.IsSuccess   ?
                    result.Src.isEnd() ? result :
-                                        ParserResult<T>.Fail(src, "Cannot reach to end.") :
-                                        ParserResult<T>.Fail(src, result.Reason);
+                                        ParserResult<T>.Fail(src, "Cannot reach to end.", result.Src.GetLinePos()) :
+                                        ParserResult<T>.Fail(src, result.Reason, result.Src.GetLinePos());
         };
 
         public static Parser<IEnumerable<T>> Many<T>(this Parser<T> parser) => src =>
@@ -50,7 +50,7 @@ namespace ParserCombinatorSample
                 else
                 {
                     return results.Any() ? ParserResult<IEnumerable<T>>.Success(s, results) :
-                                           ParserResult<IEnumerable<T>>.Fail(src, "Iterate count not fully.");
+                                           ParserResult<IEnumerable<T>>.Fail(src, "Iterate count not fully.", result.Src.GetLinePos());
                 }
             }
 
@@ -75,7 +75,7 @@ namespace ParserCombinatorSample
                 }
                 else
                 {
-                    return ParserResult<IEnumerable<T>>.Fail(src, result.Reason);
+                    return ParserResult<IEnumerable<T>>.Fail(src, result.Reason, result.Src.GetLinePos());
                 }
             }
 
@@ -116,7 +116,7 @@ namespace ParserCombinatorSample
             var result = parser(src);
 
             return result.IsSuccess ? ParserResult<TResult>.Success(result.Src, resultSelector(result.Result)) :
-                                      ParserResult<TResult>.Fail(src, result.Reason);
+                                      ParserResult<TResult>.Fail(src, result.Reason, result.Src.GetLinePos());
         };
 
         public static Parser<string> Map(this Parser<char> parser) => src =>
@@ -124,7 +124,7 @@ namespace ParserCombinatorSample
             var result = parser(src);
 
             return result.IsSuccess ? ParserResult<string>.Success(result.Src, result.Result.ToString()) :
-                                      ParserResult<string>.Fail(src, result.Reason);
+                                      ParserResult<string>.Fail(src, result.Reason, result.Src.GetLinePos());
         };
 
         public static Parser<string> Map(this Parser<IEnumerable<char>> parser) => src =>
@@ -132,7 +132,7 @@ namespace ParserCombinatorSample
             var result = parser(src);
 
             return result.IsSuccess ? ParserResult<string>.Success(result.Src, new string(result.Result.ToArray())) :
-                                      ParserResult<string>.Fail(src, result.Reason);
+                                      ParserResult<string>.Fail(src, result.Reason, result.Src.GetLinePos());
         };
 
         public static Parser<IEnumerable<char>> Map(this Parser<string> parser) => src =>
@@ -140,7 +140,7 @@ namespace ParserCombinatorSample
             var result = parser(src);
 
             return result.IsSuccess ? ParserResult<IEnumerable<char>>.Success(result.Src, result.Result) :
-                                      ParserResult<IEnumerable<char>>.Fail(src, result.Reason);
+                                      ParserResult<IEnumerable<char>>.Fail(src, result.Reason, result.Src.GetLinePos());
         };
 
         public static Parser<T> Validate<T>(this Parser<T> parser, Func<T, bool> predicate) => src =>
@@ -149,8 +149,8 @@ namespace ParserCombinatorSample
 
             return result.IsSuccess         ?
                    predicate(result.Result) ? result :
-                                              ParserResult<T>.Fail(src, "Validation failed.") :
-                                              ParserResult<T>.Fail(src, result.Reason);
+                                              ParserResult<T>.Fail(src, "Validation failed.", result.Src.GetLinePos()) :
+                                              ParserResult<T>.Fail(src, result.Reason, result.Src.GetLinePos());
         };
 
         public static Parser<TResult> ValidateSequence<TFirst, TSecond, TResult>
@@ -170,12 +170,12 @@ namespace ParserCombinatorSample
 
                 return secondResult.IsSuccess                             ? 
                        predicate(firstResult.Result, secondResult.Result) ? ParserResult<TResult>.Success(secondResult.Src, resultSelector(firstResult.Result, secondResult.Result)) :
-                                                                            ParserResult<TResult>.Fail(src, "Validation failed.") :
-                                                                            ParserResult<TResult>.Fail(src, secondResult.Reason);
+                                                                            ParserResult<TResult>.Fail(src, "Validation failed.", secondResult.Src.GetLinePos()) :
+                                                                            ParserResult<TResult>.Fail(src, secondResult.Reason, secondResult.Src.GetLinePos());
             }
             else
             {
-                return ParserResult<TResult>.Fail(src, firstResult.Reason);
+                return ParserResult<TResult>.Fail(src, firstResult.Reason, firstResult.Src.GetLinePos());
             }
         };
     }
