@@ -8,7 +8,7 @@ namespace ParserCombinatorSample
     public static class ScriptParser
     {
         public static Parser<IScriptNode> Parser => src =>
-            _SpaceParser.Right(_TagParser).Left(_SpaceParser).End()(src);
+            _SpaceOrNewLineParser.Right(_TagParser).Left(_SpaceOrNewLineParser).End()(src);
 
         private static Parser<IScriptNode> _TagParser => src =>
             _StartTagParser.Sequence(_InnerParser, (f, s) => (IScriptNode)new TagNode(f.tagName, f.attributes, (InnerNode)s))
@@ -22,36 +22,38 @@ namespace ParserCombinatorSample
                       (src);
 
         private static Parser<(string tagName, Dictionary<string, string> attributes)> _StartTagParser => src =>
-            Just('<').None(_SpaceParser)
+            Just('<').None(_SpaceOrNewLineParser)
                      .Right(Letter.OneOrMore().Map())
-                     .Sequence(_SpaceParser.Right(_AttributeParser).Many().Validate(x => x.GroupBy(xx => xx.Key).Count() == x.Count()),
+                     .Sequence(_SpaceOrNewLineParser.Right(_AttributeParser).Many().Validate(x => x.GroupBy(xx => xx.Key).Count() == x.Count()),
                                (f, s) => (tagName: f, attributes: s.ToDictionary(ss => ss.Key, ss => ss.Value)))
-                     .Left(_SpaceParser)
+                     .Left(_SpaceOrNewLineParser)
                      .Left(Just('>'))
                      (src);
         
         private static Parser<string> _EndTagParser => src =>
-            Just('<').None(_SpaceParser)
+            Just('<').None(_SpaceOrNewLineParser)
                      .None(Just('/'))
-                     .None(_SpaceParser)
+                     .None(_SpaceOrNewLineParser)
                      .Right(Letter.OneOrMore().Map())
-                     .Left(_SpaceParser)
+                     .Left(_SpaceOrNewLineParser)
                      .Left(Just('>'))
                      (src);
 
         private static Parser<KeyValuePair<string, string>> _AttributeParser => src =>
-            Letter.OneOrMore().Map().Left(_SpaceParser)
+            Letter.OneOrMore().Map().Left(_SpaceOrNewLineParser)
                                     .Left(Just('='))
-                                    .Left(_SpaceParser)
+                                    .Left(_SpaceOrNewLineParser)
                                     .Left(Just('"'))
                                     .Sequence(Not('"').Many().Map(), (f, s) => new KeyValuePair<string, string>(f, s))
                                     .Left(Just('"'))
                                     (src);
 
         private static Parser<IScriptNode> _TextParser => src =>
-            Not('<', '>').OneOrMore().Map().Map(x => (IScriptNode)new TextNode(x))(src);
+            _SpaceOrNewLineParser.Right(Not('<', '>', '\r', '\n').OneOrMore())
+                                 .Left(NewLine.Many())
+                                 .Map().Map(x => (IScriptNode)new TextNode(x))(src);
 
-        private static Parser<object> _SpaceParser => src =>
-            Space.Many().None()(src);
+        private static Parser<object> _SpaceOrNewLineParser => src =>
+            Space.Or(NewLine).Many().None()(src);
     }
 }

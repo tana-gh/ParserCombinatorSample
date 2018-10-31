@@ -39,8 +39,22 @@ namespace ParserCombinatorSample
             try
             {
                 var (c, next) = src.Read();
-                return char.IsWhiteSpace(c) ? ParserResult<char>.Success(next, c) :
-                                              ParserResult<char>.Fail(src, $"{c} is not space.", next.GetLinePos());
+                return c == ' ' || c == '\t' ? ParserResult<char>.Success(next, c) :
+                                               ParserResult<char>.Fail(src, $"{c} is not space.", next.GetLinePos());
+            }
+            catch (EndOfSrcException ex)
+            {
+                return ParserResult<char>.Fail(src, ex.Message, src.GetEndLinePos());
+            }
+        };
+
+        public static Parser<char> NewLine { get; } = src =>
+        {
+            try
+            {
+                var (c, next) = src.Read();
+                return c == '\r' || c == '\n' ? ParserResult<char>.Success(next, c) :
+                                                ParserResult<char>.Fail(src, $"{c} is not line separator.", next.GetLinePos());
             }
             catch (EndOfSrcException ex)
             {
