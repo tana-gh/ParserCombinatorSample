@@ -16,7 +16,7 @@ namespace ParserCombinatorSample
                            (src);
 
         private static Parser<IScriptNode> _InnerParser => src =>
-            _SpaceOrNewLineParser.Right(_TagParser.Or(_TextParser).Many())
+            _SpaceOrNewLineParser.Right(_TagParser.Or(_TextParser)).Many()
                                  .Left(_SpaceOrNewLineParser)
                                  .Map(x => (IScriptNode)new InnerNode(x))
                                  (src);
